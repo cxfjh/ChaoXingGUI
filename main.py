@@ -1,21 +1,28 @@
-import argparse
-import configparser
 import os
 import re
+import ctypes
+import argparse
+import configparser
+from api.answer import Tiku
 from threading import Thread
 from api.logger import logger
 from api.base import Chaoxing, Account
 from api.exceptions import LoginError, FormatError, JSONDecodeError, MaxRollBackError
-from api.answer import Tiku
 from urllib3 import disable_warnings, exceptions
+
+
+# 弹出信息框
+def MessageBox(title, text):
+    ctypes.windll.user32.MessageBoxW(None, text, title, 0x0 | 0x40)
+
 
 # 禁用不安全的请求警告
 disable_warnings(exceptions.InsecureRequestWarning)
 
+filePath = "./log/disposition.txt"
+textPath = "./log/course.txt"
+errorPath = './log/error.txt'
 
-filePath = './resource/disposition.txt'
-textPath = './resource/BookID.txt'
-errorPath = './resource/error.txt'
 if os.path.exists(errorPath): os.remove(errorPath)
 
 
@@ -128,7 +135,9 @@ def studyCourse(chaoxing, course, rbManager, speed):
         point = pointList["points"][pointIndex]
         logger.info(f'当前章节: {point["title"]}')
         jobs, jobInfo = chaoxing.get_job_list(course["clazzId"], course["courseId"], course["cpi"], point["id"])
-        bookID = jobInfo["knowledgeid"] # 获取视频ID
+        
+        try: bookID = jobInfo["knowledgeid"] # 获取视频ID
+        except KeyError: Thread(target=MessageBox, args=("提示", f'{point["title"]} 该章节没有视频，已跳过')).start()
         
         # 章节未开启，回滚到上一个任务点。
         if jobInfo.get("notOpen", False) :

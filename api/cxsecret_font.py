@@ -7,7 +7,9 @@ import base64
 import hashlib
 import json
 from io import BytesIO
+import os
 from pathlib import Path
+import sys
 from typing import IO, Union, Dict
 
 from fontTools.ttLib.tables._g_l_y_f import Glyph, table__g_l_y_f
@@ -21,13 +23,15 @@ KX_RADICALS_TAB = str.maketrans(
     "一丨丶丿乙亅二亠人儿入八冂冖冫几凵刀力勹匕匚匸十卜卩厂厶又口囗土士夂夊夕大女子宀寸小尢尸屮山巛工己巾干幺广廴廾弋弓彐彡彳心戈戶手支攴文斗斤方无日曰月木欠止歹殳毋比毛氏气水火爪父爻爿片牙牛犬玄玉瓜瓦甘生用田疋疒癶白皮皿目矛矢石示禸禾穴立竹米糸缶网羊羽老而耒耳聿肉臣自至臼舌舛舟艮色艸虍虫血行衣襾見角言谷豆豕豸貝赤走足身車辛辰辵邑酉采里金長門阜隶隹雨青非面革韋韭音頁風飛食首香馬骨高高髟鬥鬯鬲鬼魚鳥鹵鹿麥麻黃黍黑黹黽鼎鼓鼠鼻齊齒龍龜龠民齐黄马飞见母长",
 )
 
+if getattr(sys, 'frozen', False): jsonPath = os.path.join(sys._MEIPASS, 'resource', 'font_map_table.json')
+else: jsonPath = os.path.join(os.path.dirname(__file__), 'resource', 'font_map_table.json')
 
 class FontHashDAO:
     """原始字体hashmap DAO"""
     char_map: Dict[str, str]  # unicode -> hsah
     hash_map: Dict[str, str]  # hash -> unicode
 
-    def __init__(self, file: str = "./resource/font_map_table.json"):
+    def __init__(self, file: str = jsonPath.replace(r"\api", "")):
         with open(file, "r") as fp:
             _map: dict = json.load(fp)
         self.char_map = _map

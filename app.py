@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 import time
 import ctypes
 from threading import Thread
@@ -7,9 +8,18 @@ from tkinter import messagebox, Tk, Frame, Button, ttk
 
 
 # 定义全局变量
-filePath = "./resource/disposition.txt"
-idFilePath = "./resource/BookID.txt"
-errorPath = './resource/error.txt'
+filePath = "./log/disposition.txt"
+idFilePath = "./log/course.txt"
+errorPath = './log/error.txt'
+
+
+# 查询ID
+def queryId():
+    try: 
+        if os.path.exists("./log"):
+            for file in os.listdir("./log"): os.remove(os.path.join("./log", file))
+        Thread(target=opens).start()
+    except: pass
 
 
 # 从文件中提取账号信息。
@@ -24,7 +34,10 @@ def extractInfoFromFile():
 
 
 # 打开App.exe
-def opens(): ctypes.windll.shell32.ShellExecuteW(None, "open", "main.py", None, None, 1)
+def opens(): 
+    if getattr(sys, 'frozen', False): exePath = os.path.join(sys._MEIPASS, 'dist', 'main.exe') 
+    else: exePath = os.path.join(os.path.dirname(__file__), 'dist', 'main.exe')
+    ctypes.windll.shell32.ShellExecuteW(None, "open", exePath, None, None, 1)
 
 
 # 启动小助手
@@ -67,24 +80,28 @@ def submitData():
 # 重置程序
 def resetApp():
     try:
-        if os.path.exists(filePath): os.remove(filePath)
-        if os.path.exists(idFilePath): os.remove(idFilePath)
-        if os.path.exists(errorPath): os.remove(errorPath)
+        if os.path.exists("./log"):
+            for file in os.listdir("./log"): os.remove(os.path.join("./log", file))
         messagebox.showinfo("提示", "重置成功！")
     except: messagebox.showerror("错误", "重置失败！")
 
 
 # 创建主窗口
 root = Tk()
-root.title("小助手")
-root.geometry("350x250")
+root.title("刷课小助手")
+root.geometry("350x280")
 root.resizable(False, False)
 root.attributes("-topmost", True)
 root.option_add("*Font", "楷体 15")
 
+# 处理图标路径
+if getattr(sys, 'frozen', False): iconPath = os.path.join(sys._MEIPASS, 'dist', 'icon.ico')
+else: iconPath = os.path.join(os.path.dirname(__file__), 'dist', 'icon.ico')
+root.iconbitmap(iconPath)
+
 # 创建框架以实现左右布局
 frame = Frame(root)
-frame.pack(padx=50, pady=15)
+frame.pack(padx=0, pady=30)
 
 # 姓名标签和输入框
 labelAccount = ttk.Label(frame, text="账号:")
@@ -111,12 +128,20 @@ entryCount = ttk.Entry(frame)
 entryCount.grid(row=3, column=1, padx=5, pady=5)
 
 # 启动按钮
-submitButton = Button(root, text="启动", width=7, height=4, command=submitData)
-submitButton.pack(side="right", padx=40, pady=(0, 35)) 
+submitButton = Button(root, text="启动", width=5, height=4, command=submitData)
+submitButton.pack(side="left", padx=28, pady=(0, 35)) 
+
+# 查询ID
+idButton = Button(root, text="查ID", width=5, height=4, command=queryId)
+idButton.pack(side="left", padx=28, pady=(0, 35)) 
 
 # 重置按钮
-resetButton = Button(root, text="重置", width=7, height=4, command=resetApp)
-resetButton.pack(side="left", padx=40, pady=(0, 35)) 
+resetButton = Button(root, text="重置", width=5, height=4, command=resetApp)
+resetButton.pack(side="left", padx=28, pady=(0, 35)) 
+
+# 底部版本信息右下角,设置字体黑色
+labelVersion = ttk.Label(root, text="v1.0.0", foreground="gray", font=("楷体", 10))
+labelVersion.place(relx=1.0, rely=1.0, anchor='se', x=-5, y=-5)
 
 # 从文件中提取账号信息
 extractInfoFromFile()
